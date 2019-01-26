@@ -1,5 +1,11 @@
 ## resources https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples
 
+provider "azurerm" {
+  # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
+  version = "=1.20.0"
+  subscription_id = "[SUBSCRIPTION_ID]"
+}
+
 # Variables
 variable "prefix" {
   default = "test"
@@ -52,11 +58,30 @@ resource "azurerm_virtual_network" "test" {
 
 # Create and attach Subnet
 resource "azurerm_subnet" "default" {
-  name                 = "default"
+  name                 = "frontend"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.1.0/24"
 }
+
+resource "azurerm_network_security_group" "test" {
+  name                = "${azurerm_subnet.test.name}-rules"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  security_rule {
+    name                       = "80Allow"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
 
 resource "azurerm_public_ip" "vmpip" {
   name                         = "ip${count.index}"

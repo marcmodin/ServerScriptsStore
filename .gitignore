@@ -1,0 +1,3 @@
+terraform/vnetlb2vm/.terraform/**
+terraform/vnetlb2vm/terraform.tfstate
+terraform/vnetlb2vm/terraform.tfstate.backup

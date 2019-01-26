@@ -1,0 +1,30 @@
+RESOURCE_GROUPNAME = myresourcegroup
+LOCATION = westeurope
+STORAC_NAME = vhd86ahfjsfaf
+STOR_SKU = Premium_LRS
+STOR_CONTNAME = vhdblobs2343
+VHDX_PATH = c:\
+FILE_NAME =
+FILE_PATH = c:\FILE_NAME
+
+
+# Take the vhdx and resize before converting
+Resize-VHD -Path VHDX_PATH -ToMinimumSize
+# Convert to VHD
+Convert-VHD -Path VHDX_PATH -DestinationPath FILE_PATH -VHDType Fixed
+
+
+# Login
+az login
+# list resources
+az resource list -g $RESOURCE_GROUPNAME --location $LOCATION -o table
+# create resource group
+az group create --name $RESOURCE_GROUPNAME --location $LOCATION --verbose
+# check storage account exists
+az storage account check-name --name $STORAC_NAME --output table
+# create storage account : Premium_LRS, Premium_ZRS, Standard_GRS, Standard_LRS, Standard_RAGRS, Standard_ZRS
+az storage account create --resource-group $RESOURCE_GROUPNAME --account-name $STORAC_NAME --location $LOCATION --sku $STOR_SKU
+# create container in storage account
+az storage container create --name $STOR_CONTNAME --account-name $STORAC_NAME --fail-on-exist
+# upload blob to storage account : Defaults to 'page' for *.vhd files, or 'block' otherwise.
+az storage blob upload --container-name $STOR_CONTNAME --blob-name $FILE_NAME --file-path $FILE_PATH  --no-progress
